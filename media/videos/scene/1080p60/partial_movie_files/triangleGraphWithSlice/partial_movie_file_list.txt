@@ -1,0 +1,8 @@
+# This file is used internally by FFMPEG.
+file 'file:/Users/hulyakablan/Desktop/neset/manimm/manimations/media/videos/scene/1080p60/partial_movie_files/triangleGraphWithSlice/1824422187_313837731_1939479557.mp4'
+file 'file:/Users/hulyakablan/Desktop/neset/manimm/manimations/media/videos/scene/1080p60/partial_movie_files/triangleGraphWithSlice/2011737629_686415493_2112680415.mp4'
+file 'file:/Users/hulyakablan/Desktop/neset/manimm/manimations/media/videos/scene/1080p60/partial_movie_files/triangleGraphWithSlice/3155633282_1321280361_3568722639.mp4'
+file 'file:/Users/hulyakablan/Desktop/neset/manimm/manimations/media/videos/scene/1080p60/partial_movie_files/triangleGraphWithSlice/2212038561_1736335141_3395007875.mp4'
+file 'file:/Users/hulyakablan/Desktop/neset/manimm/manimations/media/videos/scene/1080p60/partial_movie_files/triangleGraphWithSlice/2199040741_3338654905_3878615948.mp4'
+file 'file:/Users/hulyakablan/Desktop/neset/manimm/manimations/media/videos/scene/1080p60/partial_movie_files/triangleGraphWithSlice/910345628_2968904986_892913552.mp4'
+file 'file:/Users/hulyakablan/Desktop/neset/manimm/manimations/media/videos/scene/1080p60/partial_movie_files/triangleGraphWithSlice/3522235590_2813011618_4187408487.mp4'

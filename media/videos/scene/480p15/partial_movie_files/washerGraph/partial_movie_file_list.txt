@@ -1,0 +1,4 @@
+# This file is used internally by FFMPEG.
+file 'file:/Users/hulyakablan/Desktop/neset/manimm/manimations/media/videos/scene/480p15/partial_movie_files/washerGraph/24616292_3197867274_1944144852.mp4'
+file 'file:/Users/hulyakablan/Desktop/neset/manimm/manimations/media/videos/scene/480p15/partial_movie_files/washerGraph/437894419_2761894065_167745962.mp4'
+file 'file:/Users/hulyakablan/Desktop/neset/manimm/manimations/media/videos/scene/480p15/partial_movie_files/washerGraph/3144288514_1321280361_1040049955.mp4'
