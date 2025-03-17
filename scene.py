@@ -251,7 +251,7 @@ class washerGraph(ThreeDScene):
         self.wait(10)
         self.stop_ambient_camera_rotation()
 
-class cylinderGraph(ThreeDScene):
+class cylinderGraph1(ThreeDScene): #6.3 number 7 | y=x^2 y=6x-2x^2
     def construct(self):
         axes = ThreeDAxes(
             x_range=[-2, 2],
@@ -261,14 +261,16 @@ class cylinderGraph(ThreeDScene):
         )
 
         labels = axes.get_axis_labels(
-            Text("x-axis").scale(0.7), Text("y-axis").scale(0.45), Text("z-axis").scale(0.45)
+            Text("x-axis").scale(0.7), Text("y-axis").scale(0.7), Text("z-axis").scale(0.45)
         )
 
         def create_cylinder_at_x(x):
-            # Radius = 2πx
-            radius =x#2 * PI * x
-            # Height = x^2 + 1
-            height = x**2 + 1
+            # Radius = x
+            radius = x
+            # Bottom height from y = x^2
+            bottom_height = x**2
+            # Top height from y = 6x - 2x**2
+            top_height = 6*x - 2*x**2
             
             # Create hollow cylinder
             t = x  # for color interpolation
@@ -277,46 +279,342 @@ class cylinderGraph(ThreeDScene):
             cylinder = Surface(
                 lambda u, v: np.array([
                     radius * np.cos(u),
-                    v * height,
+                    bottom_height + (top_height - bottom_height) * v,  # interpolate between curves
                     radius * np.sin(u)
                 ]),
                 u_range=[0, TAU],
                 v_range=[0, 1],
-                checkerboard_colors=[color, color],
-                fill_opacity=0.5,
-                stroke_color=Scolor,  # Add dark purple border
-                stroke_width=4,
+                fill_color=color,
+                fill_opacity=0.9,
+                resolution=(16,8),
+                checkerboard_colors=[BLUE, BLUE],
             )
             return cylinder
 
-        # Create the original curve y = x^2 + 1
-        curve = ParametricFunction(
-            lambda t: np.array([t, t**2 + 1, 0]),
-            t_range=[0, 1],
+        # Create the original curve y = x^2
+        Ocurve = ParametricFunction(
+            lambda t: np.array([t, t**2, 0]),
+            t_range=[0, 2],
+            color=YELLOW
+        )
+        # Create the original curve 6x - 2x^2
+        Icurve = ParametricFunction(
+            lambda t: np.array([t, 6*t - 2*t**2, 0]),
+            t_range=[0, 2],
             color=YELLOW
         )
 
-        line = Line(start=[1, 0, 0], end=[1, 2, 0], color=BLUE)
+        def param_surface_inner(u, v):
+            # u is the angle of rotation (0 to 2π)
+            # v is the x-coordinate in the original plane
+            r = v  # radius = original x-coordinate
+            y = 6*v - 2*v**2 # height from inner curve
+            x = r * np.cos(u)
+            z = r * np.sin(u)
+            return np.array([x, y, z])
+
+        # Parametric surface for outer surface (y=x/2)
+        def param_surface_outer(u, v):
+            # u is the angle of rotation (0 to 2π)
+            # v is the x-coordinate in the original plane
+            r = v  # radius = original x-coordinate
+            y = v**2  # height from outer curve
+            x = r * np.cos(u)
+            z = r * np.sin(u)
+            return np.array([x, y, z])
+
+        # Create both rotated surfaces
+        surface_inner = Surface(
+            lambda u, v: param_surface_inner(u, v),
+            u_range=[0, TAU],
+            v_range=[0, 2],
+            checkerboard_colors=[RED, RED],
+            resolution=(16, 8)
+        )
+
+        surface_outer = Surface(
+            lambda u, v: param_surface_outer(u, v),
+            u_range=[0, TAU],
+            v_range=[0, 2],
+            checkerboard_colors=[RED, RED],
+            resolution=(16, 8)
+        )
 
         # Create 10 cylinders from x=0 to x=1
-        x_values = np.linspace(0.1, 1, 20)  # Avoid x=0 as radius would be 0
+        x_values = np.linspace(0.1, 2, 15)  # Avoid x=0 as radius would be 0
         cylinders = VGroup(*[create_cylinder_at_x(x) for x in x_values])
-
+        
         # Set up scene and animate
-        self.set_camera_orientation(phi=75 * DEGREES, theta=-60 * DEGREES)
+        self.set_camera_orientation(zoom=0.6)
+        #self.set_camera_orientation(phi=75 * DEGREES, theta=-60 * DEGREES)
         self.add(axes, labels)
 
         # Show the original curve first
         self.play(
-            Create(curve), 
-            Create(line),
+            Create(Ocurve), 
+            Create(Icurve),
             run_time=2
         )
         
         # Create the cylinders
         self.play(Create(cylinders), run_time=15)
+        self.wait()
+        self.play(
+            Create(surface_inner),
+            Create(surface_outer),
+            run_time=3
+        )
+        self.play(
+            cylinders.set_opacity(0).animate()
+        )
+
+        self.move_camera(phi=75 * DEGREES, theta=-20 * DEGREES)
+        self.set_camera_orientation(zoom=0.9)
 
         # Rotate camera to show 3D shape
-        self.begin_ambient_camera_rotation(rate=0.2)
-        self.wait(15)
+        self.begin_ambient_camera_rotation(rate=0.3)
+        self.wait(9)
         self.stop_ambient_camera_rotation()
+
+        sample_cylinder = create_cylinder_at_x(1)
+        sample_rectangle = Rectangle(height=3, width=(2*3.14159*1), color=GREEN, fill_opacity=1)
+
+        self.move_camera(phi=0, theta=0, gamma=90*DEGREES, zoom=0.6)
+        self.play(
+            FadeOut(surface_inner),
+            FadeOut(surface_outer),
+            cylinders.set_opacity(0.1).animate(),
+            run_time=3
+        )
+        self.play(
+            FadeIn(sample_cylinder),
+            FadeOut(axes,labels),
+            FadeOut(Ocurve, Icurve),
+            run_time=3
+        )
+        self.wait(),
+        self.play(
+            cylinders.animate.set_opacity(0),
+            run_time=3
+        )
+        self.play(
+            Transform(sample_cylinder, sample_rectangle),
+            run_time=2
+        )
+
+        
+
+class graph(ThreeDScene):
+    def construct(self):
+        # Improve axes appearance
+        axes = ThreeDAxes(
+            x_range=[-5, 5],
+            y_range=[-5, 5],
+            z_range=[-5, 5],
+            axis_config={
+                "color": BLUE_E,
+                "stroke_width": 2,
+                "include_numbers": True,
+                "numbers_to_exclude": [0]
+            }
+        )
+
+        labels = axes.get_axis_labels(
+            Text("x-axis").scale(0.7), Text("y-axis").scale(0.7), Text("z-axis").scale(0.45)
+        )
+
+
+        def param_surface_inner(u, v, equation):
+            # u is the angle of rotation (0 to 2π)
+            # v is the x-coordinate in the original plane
+            r = v  # radius = original x-coordinate
+            y = equation 
+            x = r * np.cos(u)
+            z = r * np.sin(u)
+            return np.array([x, y, z])
+
+        # Parametric surface for outer surface (y=x/2)
+        def param_surface_outer(u, v, equation):
+            # u is the angle of rotation (0 to 2π)
+            # v is the x-coordinate in the original plane
+            r = v  # radius = original x-coordinate
+            y = equation  # height from outer curve
+            x = r * np.cos(u)
+            z = r * np.sin(u)
+            return np.array([x, y, z])
+        
+        global inner_equation, outer_equation, inverseI_equation, inverseO_equation
+        inner_equation = lambda v: ((v-1)**2)
+        outer_equation = lambda v: (1/2 * v)
+        inverseO_equation = lambda v: (np.sqrt(v)+1)
+        inverseI_equation = lambda v: (2*v)
+        
+        # Find intersection point by solving: 6x-2x² = x²
+        # 0 = 3x² - 6x = 3x(x-2)
+        # x = 0 or x = 2
+        intersection_x = 2  # using x = 2 since x = 0 is the start point
+        
+        # Improve surface appearance
+        surface_inner = Surface(
+            lambda u, v: param_surface_inner(u, v, inverseI_equation(v)),
+            u_range=[0, TAU],
+            v_range=[0.01, 1],
+            checkerboard_colors=[BLUE_D, BLUE_E],
+            resolution=(16, 8),  # Higher resolution
+            fill_opacity=0.8,
+            stroke_width=0.5
+        )
+
+        surface_outer = Surface(
+            lambda u, v: param_surface_outer(u, v, inverseO_equation(v)),
+            u_range=[0, TAU],
+            v_range=[0.01, 1],
+            checkerboard_colors=[RED_D, RED_E],
+            resolution=(16, 8),
+            fill_opacity=0.8,
+            stroke_width=0.5
+        )
+
+        # Improve curve appearance
+        Ocurve = ParametricFunction(
+            lambda t: np.array([t, (2*t), 0]),
+            t_range=[0, intersection_x],
+            color=YELLOW,
+            shade_in_3d=True,
+            stroke_width=4,
+            stroke_opacity=1.0
+        )
+        
+        Icurve = ParametricFunction(
+            lambda t: np.array([t, (np.sqrt(t)+1), 0]),
+            t_range=[0, intersection_x],
+            color=YELLOW,
+            shade_in_3d=True,
+            stroke_width=4,
+            stroke_opacity=1.0
+        )
+
+        # Better camera positioning and animation
+        self.set_camera_orientation(
+            phi=60 * DEGREES, 
+            theta=-45 * DEGREES,
+            zoom=0.7,
+            frame_center=[0, 2, 0]  # Center the view on the interesting part
+        )
+        self.add(axes, labels)
+
+        # Smoother animations
+        self.play(
+            Create(Ocurve), 
+            Create(Icurve),
+            run_time=2,
+            rate_func=smooth
+        )
+
+        self.play(
+            Create(surface_inner),
+            Create(surface_outer),
+            #FadeOut(Icurve, Ocurve),
+            run_time=3,
+            rate_func=linear
+        )
+
+        # Smoother camera movement
+        self.move_camera(
+            phi=75 * DEGREES,
+            theta=-20 * DEGREES,
+            zoom=0.9,
+            run_time=2,
+            rate_func=smooth
+        )
+
+        self.begin_ambient_camera_rotation(rate=0.2)
+        self.wait(9)
+        self.stop_ambient_camera_rotation()
+
+class cylinderGraph2(ThreeDScene):
+    def construct(self):
+        axes = ThreeDAxes(
+            x_range=[-2, 2],
+            y_range=[-2, 2],
+            z_range=[-2, 2],
+            axis_config={"color": WHITE},
+        )
+
+        labels = axes.get_axis_labels(
+            Text("x-axis").scale(0.7), Text("y-axis").scale(0.7), Text("z-axis").scale(0.45)
+        )
+
+        def create_cylinder_at_x(x):
+            # Radius = x
+            radius = x
+            # Bottom height from y = (x-1)^2
+            bottom_height = (x-1)**2
+            # Top height from y = x/2
+            top_height = x/2
+            
+            # Create hollow cylinder
+            t = x/4  # for color interpolation
+            color = interpolate_color(BLUE, RED, t)
+            Scolor = interpolate_color(PINK, PURPLE, t)
+            cylinder = Surface(
+                lambda u, v: np.array([
+                    radius * np.cos(u),
+                    bottom_height + (top_height - bottom_height) * v,
+                    radius * np.sin(u)
+                ]),
+                u_range=[0, TAU],
+                v_range=[0.5, 1],
+                fill_color=color,
+                fill_opacity=0.9,
+                resolution=(16,8),
+                checkerboard_colors=[BLUE, BLUE],
+            )
+            return cylinder
+
+        # Create the original curves
+        line = ParametricFunction(
+            lambda t: np.array([t, t/2, 0]),
+            t_range=[1/2, 2],
+            color=YELLOW
+        )
+        
+        parabola = ParametricFunction(
+            lambda t: np.array([t, (t-1)**2, 0]),
+            t_range=[1/2, 2],
+            color=YELLOW
+        )
+
+        # Find intersection points by solving: x/2 = (x-1)^2
+        # x/2 = x^2 - 2x + 1
+        # 0 = 2x^2 - 4x - x + 2 = 2x^2 - 5x + 2
+        # Using quadratic formula: x = (5 ± √(25-16))/4 = (5 ± 3)/4
+        # x ≈ 2 is our intersection point of interest
+
+        # Create cylinders
+        x_values = np.linspace(0.1, 2, 15)
+        cylinders = VGroup(*[create_cylinder_at_x(x) for x in x_values])
+        
+        # Set up scene and animate
+        self.set_camera_orientation(zoom=0.6)
+        self.add(axes, labels)
+
+        # Show the original curves first
+        self.play(
+            Create(line), 
+            Create(parabola),
+            run_time=2
+        )
+        
+        # Create the cylinders
+        self.play(Create(cylinders), run_time=5)
+
+        # Move camera for better view
+        self.move_camera(phi=75 * DEGREES, theta=-20 * DEGREES)
+        self.set_camera_orientation(zoom=0.9)
+
+        # Rotate camera
+        self.begin_ambient_camera_rotation(rate=0.3)
+        self.wait(9)
+        self.stop_ambient_camera_rotation()
+
